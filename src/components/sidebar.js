@@ -16,9 +16,8 @@ const sortOptions = [
 ];
 const singleOptionFilters = [
   {
-    value: "available_for_hire_true",
-    label: "Available for hire",
-    checked: "true",
+    value: "available_for_hire",
+    label: "Only available for hire"
   },
 ];
 const filters = [
@@ -26,9 +25,9 @@ const filters = [
     id: "certifications",
     name: "Certifications",
     options: [
-      { value: "cosmwasm", label: "CosmWasm", checked: false },
-      { value: "move", label: "Move", checked: false },
-      { value: "rust", label: "Rust", checked: true },
+      { value: "cosmwasm", label: "CosmWasm" },
+      { value: "move", label: "Move" },
+      { value: "rust", label: "Rust" },
     ],
   },
 ];
@@ -97,8 +96,42 @@ const useFetchNfts = () => {
 
 export default function Sidebar() {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [checkedFilters, setCheckedFilters] = useState({}); //plain object as state
+
   let nfts = useFetchNfts();
-  const [filterAvailableForHire, setFilterAvailableForHire] = useState(false);
+
+  const showNft = (nft) => {
+    let show = false;
+    let certificationsLowercased = nft.certifications.map(cert => cert.toLowerCase());
+    for (const filter in checkedFilters) {
+      if(checkedFilters[filter]) {
+        if(filter == 'available_for_hire' && nft.available_for_hire){
+          show = true
+          break
+        }
+        if(certificationsLowercased.includes(filter)){
+          show = true
+          break
+        }
+      }
+    }
+    const areFiltersDisabled = Object.values(checkedFilters).every(
+      filterValue => filterValue === false
+    );
+    if(areFiltersDisabled){
+      show = true
+    }
+    return show
+  }
+
+  const handleChange = (event) => {
+      // updating an object instead of a Map
+      setCheckedFilters({...checkedFilters, [event.target.value] : event.target.checked });
+  }
+
+  useEffect(() => {
+    console.log("checkedFilters: ", checkedFilters);
+  }, [checkedFilters]);
 
   return (
     <div className="bg-white">
@@ -161,7 +194,8 @@ export default function Sidebar() {
                             name={`singleOptionFilters[]`}
                             defaultValue={category.value}
                             type="checkbox"
-                            defaultChecked={category.checked}
+                            checked={checkedFilters[category.name]} 
+                            onChange={handleChange}
                             className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                           />
                           <label
@@ -214,7 +248,8 @@ export default function Sidebar() {
                                       name={`${section.id}[]`}
                                       defaultValue={option.value}
                                       type="checkbox"
-                                      defaultChecked={option.checked}
+                                      checked={checkedFilters[option.name]} 
+                                      onChange={handleChange}
                                       className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                     />
                                     <label
@@ -321,7 +356,8 @@ export default function Sidebar() {
                         name={`singleOptionFilters[]`}
                         defaultValue={category.value}
                         type="checkbox"
-                        defaultChecked={category.checked}
+                        checked={checkedFilters[category.name]} 
+                        onChange={handleChange}
                         className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                       />
                       <label
@@ -374,7 +410,8 @@ export default function Sidebar() {
                                   name={`${section.id}[]`}
                                   defaultValue={option.value}
                                   type="checkbox"
-                                  defaultChecked={option.checked}
+                                  checked={checkedFilters[option.name]} 
+                                  onChange={handleChange}
                                   className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
                                 />
                                 <label
@@ -397,7 +434,7 @@ export default function Sidebar() {
               <div className="lg:col-span-3">
                 <section class="overflow-hidden text-gray-700 ">
                   <div class="flex flex-wrap -m-1 md:-m-2">
-                    {nftSampleData.map((nftData, idx) => (<Card key={idx} nftData={nftData} />))}
+                    {nftSampleData.map((nftData, idx) => showNft(nftData) ? (<Card key={idx} nftData={nftData} />) : "")}
                   </div>
                 </section>
               </div>
