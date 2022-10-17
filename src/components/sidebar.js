@@ -77,8 +77,8 @@ const useFetchNfts = () => {
   const nftContractAddress = process.env.REACT_APP_NFT_CONTRACT_ADDRESS || "";
   const fetchNfts = async () => {
     const client = await CosmWasmClient.connect(rpcEndpoint);
-    const { count } = await client.queryContractSmart(nftContractAddress, {
-      num_tokens: {},
+    const res = await client.queryContractSmart(nftContractAddress, {
+      all_tokens: { limit: 25 },
     });
     const nftINfo = await client.queryContractSmart(nftContractAddress, {
       nft_info: {
