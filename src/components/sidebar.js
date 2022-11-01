@@ -77,16 +77,19 @@ const useFetchNfts = () => {
   const nftContractAddress = process.env.REACT_APP_NFT_CONTRACT_ADDRESS || "";
   const fetchNfts = async () => {
     const client = await CosmWasmClient.connect(rpcEndpoint);
-    const res = await client.queryContractSmart(nftContractAddress, {
-      all_tokens: { limit: 25 },
+    let allNftsInfo = [];
+    const {tokens} = await client.queryContractSmart(nftContractAddress, {
+      all_tokens: { limit: 100 },
     });
-    const nftINfo = await client.queryContractSmart(nftContractAddress, {
-      nft_info: {
-        token_id: "1",
-      },
-    });
-    console.log(nftINfo);
-    setNfts(nftINfo);
+    for(let i = 1; i<=tokens.length; i++){
+      const nftINfo = await client.queryContractSmart(nftContractAddress, {
+        nft_info: {
+          token_id: `Cadet #${i}`,
+        },
+      });
+      allNftsInfo.push(nftINfo)
+    }
+    setNfts(allNftsInfo);
   };
   useEffect(() => {
     fetchNfts();
